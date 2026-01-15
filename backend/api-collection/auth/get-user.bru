@@ -1,0 +1,46 @@
+meta {
+  name: Get User by ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/users/1
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response has user", function() {
+    expect(res.body.user).to.exist;
+    const user = res.body.user;
+    expect(user.id).to.exist;
+    expect(user.email).to.exist;
+    expect(user.created_at).to.exist;
+  });
+}
+
+docs {
+  # Obtenir un utilisateur par ID
+  
+  Récupère les informations d'un utilisateur spécifique par son ID.
+  
+  ## Path parameters
+  - `userId`: ID de l'utilisateur à récupérer
+  
+  ## Headers
+  - `Authorization`: Bearer {token}
+  
+  ## Responses
+  - `200`: Détails de l'utilisateur
+  - `404`: Utilisateur non trouvé
+  - `401`: Non authentifié
+}

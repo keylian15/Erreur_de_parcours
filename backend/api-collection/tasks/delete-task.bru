@@ -1,0 +1,44 @@
+meta {
+  name: Delete Task
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/api/tasks/1
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+tests {
+  test("Status is 200 or 404", function() {
+    expect([200, 404]).to.include(res.status);
+  });
+  
+  test("If deleted, response has message", function() {
+    if (res.status === 200) {
+      expect(res.body.message).to.exist;
+    }
+  });
+}
+
+docs {
+  # Supprimer une tâche
+  
+  Supprime une tâche existante.
+  
+  ## Headers
+  - `Authorization`: Bearer {token}
+  
+  ## URL Parameters
+  - `id` (integer): ID de la tâche
+  
+  ## Responses
+  - `200`: Tâche supprimée
+  - `404`: Tâche non trouvée
+  - `401`: Non authentifié
+}

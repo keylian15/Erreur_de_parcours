@@ -1,0 +1,55 @@
+meta {
+  name: Update Task
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/api/tasks/1
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "title": "Tâche modifiée",
+    "done": true
+  }
+}
+
+tests {
+  test("Status is 200 or 404", function() {
+    expect([200, 404]).to.include(res.status);
+  });
+  
+  test("If updated, response has message", function() {
+    if (res.status === 200) {
+      expect(res.body.message).to.exist;
+    }
+  });
+}
+
+docs {
+  # Mettre à jour une tâche
+  
+  Modifie une tâche existante.
+  
+  ## Headers
+  - `Authorization`: Bearer {token}
+  
+  ## URL Parameters
+  - `id` (integer): ID de la tâche
+  
+  ## Body Parameters
+  - `title` (string, optional): Nouveau titre
+  - `done` (boolean, optional): Nouveau statut
+  
+  ## Responses
+  - `200`: Tâche mise à jour
+  - `404`: Tâche non trouvée
+  - `401`: Non authentifié
+}

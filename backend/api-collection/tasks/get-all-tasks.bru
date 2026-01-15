@@ -1,0 +1,47 @@
+meta {
+  name: Get All Tasks
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/tasks
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response is array", function() {
+    expect(res.body.tasks).to.be.an('array');
+  });
+  
+  test("Tasks have required fields", function() {
+    if (res.body.tasks.length > 0) {
+      const task = res.body.tasks[0];
+      expect(task.id).to.exist;
+      expect(task.title).to.exist;
+      expect(task.done).to.exist;
+    }
+  });
+}
+
+docs {
+  # Obtenir toutes les tâches
+  
+  Récupère la liste de toutes les tâches.
+  
+  ## Headers
+  - `Authorization`: Bearer {token}
+  
+  ## Responses
+  - `200`: Liste des tâches
+  - `401`: Non authentifié
+}

@@ -1,0 +1,46 @@
+meta {
+  name: Get Task by ID
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/tasks/1
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+tests {
+  test("Status is 200 or 404", function() {
+    expect([200, 404]).to.include(res.status);
+  });
+  
+  test("If found, task has required fields", function() {
+    if (res.status === 200) {
+      expect(res.body.task.id).to.exist;
+      expect(res.body.task.title).to.exist;
+      expect(res.body.task.done).to.exist;
+    }
+  });
+}
+
+docs {
+  # Obtenir une tâche par ID
+  
+  Récupère une tâche spécifique par son ID.
+  
+  ## Headers
+  - `Authorization`: Bearer {token}
+  
+  ## URL Parameters
+  - `id` (integer): ID de la tâche
+  
+  ## Responses
+  - `200`: Tâche trouvée
+  - `404`: Tâche non trouvée
+  - `401`: Non authentifié
+}

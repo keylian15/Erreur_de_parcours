@@ -1,0 +1,58 @@
+meta {
+  name: Create Task
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/tasks
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "title": "Ma nouvelle tâche",
+    "done": false
+  }
+}
+
+tests {
+  test("Status is 201", function() {
+    expect(res.status).to.equal(201);
+  });
+  
+  test("Response has task", function() {
+    expect(res.body.task).to.exist;
+  });
+  
+  test("Task has id", function() {
+    expect(res.body.task.id).to.exist;
+  });
+  
+  test("Task has correct title", function() {
+    expect(res.body.task.title).to.equal("Ma nouvelle tâche");
+  });
+}
+
+docs {
+  # Créer une tâche
+  
+  Crée une nouvelle tâche.
+  
+  ## Headers
+  - `Authorization`: Bearer {token}
+  
+  ## Body Parameters
+  - `title` (string, required): Titre de la tâche
+  - `done` (boolean, optional): Statut (défaut: false)
+  
+  ## Responses
+  - `201`: Tâche créée avec succès
+  - `400`: Titre manquant
+  - `401`: Non authentifié
+}
