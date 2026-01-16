@@ -42,7 +42,7 @@ export const registerUser = async (req, res) => {
     });
   } catch (error) {
     console.error("Erreur lors de l'enregistrement:", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    res.status(500).json({ error: "Erreur serveur" + error });
   }
 };
 
@@ -85,7 +85,7 @@ export const loginUser = async (req, res) => {
     });
   } catch (error) {
     console.error("Erreur lors de la connexion:", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    res.status(500).json({ error: "Erreur serveur" + error });
   }
 };
 
@@ -96,7 +96,7 @@ export const getUsers = async (_req, res) => {
     res.json({ users });
   } catch (error) {
     console.error("Erreur lors de la récupération des users:", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    res.status(500).json({ error: "Erreur serveur" + error });
   }
 };
 
@@ -113,6 +113,6 @@ export const getUserById = async (req, res) => {
     res.json({ users: users[0] });
   } catch (error) {
     console.error("Erreur lors de la récupération de l'user:", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    res.status(500).json({ error: "Erreur serveur" + error });
   }
 };

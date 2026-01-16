@@ -27,7 +27,7 @@ export const createTask = async (req, res) => {
     });
   } catch (error) {
     console.error('Erreur lors de la création de la tâche:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+    res.status(500).json({ error: "Erreur serveur" + error });
   }
 };
 
@@ -39,7 +39,7 @@ export const getTasks = async (req, res) => {
     res.json({ tasks });
   } catch (error) {
     console.error('Erreur lors de la récupération des tâches:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+    res.status(500).json({ error: "Erreur serveur" + error });
   }
 };
 
@@ -57,7 +57,7 @@ export const getTaskById = async (req, res) => {
     res.json({ task: tasks[0] });
   } catch (error) {
     console.error('Erreur lors de la récupération de la tâche:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+    res.status(500).json({ error: "Erreur serveur" + error });
   }
 };
 
@@ -98,7 +98,7 @@ export const updateTask = async (req, res) => {
     res.json({ message: 'Tâche mise à jour avec succès' });
   } catch (error) {
     console.error('Erreur lors de la mise à jour de la tâche:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+    res.status(500).json({ error: "Erreur serveur" + error });
   }
 };
 
@@ -116,6 +116,6 @@ export const deleteTask = async (req, res) => {
     res.json({ message: 'Tâche supprimée avec succès' });
   } catch (error) {
     console.error('Erreur lors de la suppression de la tâche:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+    res.status(500).json({ error: "Erreur serveur" + error });
   }
 };
