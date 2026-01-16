@@ -1,24 +1,77 @@
 <template>
-	<section class="login-container">
-		<form class="login-form" @submit.prevent="handleLogin">
-			<h1>Connexion</h1>
-			<div class="form-group">
-				<label for="email">Email</label>
-				<input type="email" id="email" v-model="email" required autocomplete="email" />
+	<section class="auth-page">
+		<div class="container py-5">
+			<div class="row justify-content-center">
+				<div class="col-12 col-lg-10">
+					<div class="row g-4 align-items-stretch">
+						<div class="col-12 col-lg-6">
+							<n-card size="large" class="h-100 auth-card">
+								<n-space vertical size="large">
+									<n-tag type="info" round size="large">Accès sécurisé</n-tag>
+									<h1 class="display-6 fw-bold mb-0">Connexion</h1>
+									<p class="text-muted mb-0">
+										Retrouvez vos projets et suivez vos tâches dès maintenant.
+									</p>
+									<n-alert v-if="error" type="error" :show-icon="true">
+										{{ error }}
+									</n-alert>
+									<n-space align="center" size="small">
+										<span class="text-muted">Nouveau ici ?</span>
+										<RouterLink to="/register">Créer un compte</RouterLink>
+									</n-space>
+								</n-space>
+							</n-card>
+						</div>
+						<div class="col-12 col-lg-6">
+							<n-card size="large" class="shadow-lg">
+								<form @submit.prevent="handleLogin">
+									<n-form>
+										<n-form-item label="Email">
+											<n-input
+												v-model:value="email"
+												type="email"
+												placeholder="vous@exemple.com"
+												autocomplete="email"
+											/>
+										</n-form-item>
+										<n-form-item label="Mot de passe">
+											<n-input
+												v-model:value="password"
+												type="password"
+												show-password-on="mousedown"
+												placeholder="••••••••"
+												autocomplete="current-password"
+											/>
+										</n-form-item>
+										<n-button
+											type="primary"
+											block
+											size="large"
+											:loading="loading"
+											:disabled="loading"
+											html-type="submit"
+											@click="handleLogin"
+										>
+											Se connecter
+										</n-button>
+									</n-form>
+								</form>
+								<div class="mt-3 text-center text-muted">
+									Pas de compte ? <RouterLink to="/register">Créer un compte</RouterLink>
+								</div>
+							</n-card>
+						</div>
+					</div>
+				</div>
 			</div>
-			<div class="form-group">
-				<label for="password">Mot de passe</label>
-				<input type="password" id="password" v-model="password" required autocomplete="current-password" />
-			</div>
-			<button class="login-btn" :disabled="loading">Se connecter</button>
-			<p v-if="error" class="error-msg">{{ error }}</p>
-		</form>
+		</div>
 	</section>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { NCard, NForm, NFormItem, NInput, NButton, NSpace, NTag, NAlert } from 'naive-ui'
 
 const email = ref('')
 const password = ref('')

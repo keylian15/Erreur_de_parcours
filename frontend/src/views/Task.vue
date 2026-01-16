@@ -1,27 +1,88 @@
 <template>
-  <section class="task-container">
-    <h1>Mes tâches</h1>
-    <form class="add-task-form" @submit.prevent="addTask">
-      <input v-model="newTask" type="text" placeholder="Ajouter une tâche..." required />
-      <button type="submit">Ajouter</button>
-    </form>
-    <ul class="task-list">
-      <li v-for="task in tasks" :key="task.id" :class="{ done: task.done }">
-        <input type="checkbox" :checked="task.done" @change="toggleTask(task)" />
-        <span>{{ task.title }}</span>
-        <button class="delete-btn" @click="deleteTask(task.id)">🗑️</button>
-      </li>
-    </ul>
-    <p v-if="error" class="error-msg">{{ error }}</p>
+  <section class="tasks-page">
+    <div class="container py-4">
+      <div class="row g-4">
+        <div class="col-12 col-lg-4">
+          <n-card size="large" class="shadow-sm">
+            <n-space vertical size="large">
+              <div>
+                <h2 class="mb-1">Mes tâches</h2>
+                <p class="text-muted mb-0">Pilotez vos priorités du jour.</p>
+              </div>
+              <div class="row g-3">
+                <div class="col-6">
+                  <n-statistic label="Total" :value="tasks.length" />
+                </div>
+                <div class="col-6">
+                  <n-statistic label="Terminées" :value="doneCount" />
+                </div>
+              </div>
+              <n-divider />
+              <n-form @submit.prevent="addTask">
+                <n-form-item label="Nouvelle tâche">
+                  <n-input v-model:value="newTask" placeholder="Ajouter une tâche..." />
+                </n-form-item>
+                <n-button type="primary" block :disabled="!newTask.trim()">Ajouter</n-button>
+              </n-form>
+              <n-alert v-if="error" type="error" :show-icon="true">{{ error }}</n-alert>
+            </n-space>
+          </n-card>
+        </div>
+        <div class="col-12 col-lg-8">
+          <n-card size="large" class="shadow-lg">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <h3 class="mb-0">Liste</h3>
+              <n-tag v-if="tasks.length" type="success">{{ doneCount }} terminées</n-tag>
+            </div>
+            <n-empty v-if="!tasks.length" description="Aucune tâche pour le moment." />
+            <n-list v-else>
+              <n-list-item v-for="task in tasks" :key="task.id">
+                <div class="d-flex align-items-center justify-content-between w-100">
+                  <n-space align="center" size="large">
+                    <n-checkbox :checked="task.done" @update:checked="(value) => toggleTask(task, value)">
+                      <span :class="['task-title', { 'text-decoration-line-through text-muted': task.done }]">
+                        {{ task.title }}
+                      </span>
+                    </n-checkbox>
+                    <n-tag size="small" :type="task.done ? 'success' : 'warning'">
+                      {{ task.done ? 'Terminée' : 'En cours' }}
+                    </n-tag>
+                  </n-space>
+                  <n-button quaternary type="error" @click="deleteTask(task.id)">Supprimer</n-button>
+                </div>
+              </n-list-item>
+            </n-list>
+          </n-card>
+        </div>
+      </div>
+    </div>
   </section>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import {
+  NCard,
+  NForm,
+  NFormItem,
+  NInput,
+  NButton,
+  NSpace,
+  NTag,
+  NList,
+  NListItem,
+  NCheckbox,
+  NEmpty,
+  NAlert,
+  NDivider,
+  NStatistic
+} from 'naive-ui'
 
 const tasks = ref([])
 const newTask = ref('')
 const error = ref('')
+
+const doneCount = computed(() => tasks.value.filter(task => task.done).length)
 
 function getToken() {
   return localStorage.getItem('token') || ''
@@ -46,6 +107,10 @@ async function fetchTasks() {
 
 async function addTask() {
   error.value = ''
+  if (!newTask.value.trim()) {
+    error.value = 'Veuillez saisir un titre de tâche.'
+    return
+  }
   try {
     const res = await fetch('/api/tasks', {
       method: 'POST',
@@ -53,7 +118,7 @@ async function addTask() {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + getToken()
       },
-      body: JSON.stringify({ title: newTask.value, done: false })
+      body: JSON.stringify({ title: newTask.value.trim(), done: false })
     })
     const data = await res.json()
     if (res.status === 201) {
@@ -84,8 +149,9 @@ async function deleteTask(id) {
   }
 }
 
-async function toggleTask(task) {
+async function toggleTask(task, checked) {
   error.value = ''
+  const nextDone = typeof checked === 'boolean' ? checked : !task.done
   try {
     const res = await fetch(`/api/tasks/${task.id}`, {
       method: 'PUT',
@@ -93,10 +159,10 @@ async function toggleTask(task) {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + getToken()
       },
-      body: JSON.stringify({ done: !task.done })
+      body: JSON.stringify({ done: nextDone })
     })
     if (res.status === 200) {
-      task.done = !task.done
+      task.done = nextDone
     } else {
       error.value = 'Erreur lors de la modification.'
     }
@@ -107,61 +173,3 @@ async function toggleTask(task) {
 
 onMounted(fetchTasks)
 </script>
-
-<style scoped>
-.task-container {
-  max-width: 500px;
-  margin: 2rem auto;
-  background: rgba(255,255,255,0.05);
-  border-radius: 18px;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-  padding: 2.5rem 2rem;
-}
-.add-task-form {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-.add-task-form input {
-  flex: 1;
-  padding: 0.6rem;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-}
-.add-task-form button {
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  border: none;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-}
-.task-list {
-  list-style: none;
-  padding: 0;
-}
-.task-list li {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.7rem 0;
-  border-bottom: 1px solid #eee;
-}
-.task-list li.done span {
-  text-decoration: line-through;
-  color: #888;
-}
-.delete-btn {
-  background: none;
-  border: none;
-  color: #e74c3c;
-  font-size: 1.2rem;
-  cursor: pointer;
-}
-.error-msg {
-  color: #e74c3c;
-  margin-top: 1rem;
-}
-</style>
