@@ -2,11 +2,6 @@
     <nav class="navbar-custom">
         <n-space justify="space-between" align="center" style="width: 100%">
             <n-space align="center">
-                <RouterLink to="/" class="brand-link">
-                    <n-gradient-text :size="24" type="info">
-                        Erreur de Parcours
-                    </n-gradient-text>
-                </RouterLink>
                 <n-button text tag="a" @click="$router.push('/')">
                     <template #icon>
                         <n-icon><HomeIcon /></n-icon>

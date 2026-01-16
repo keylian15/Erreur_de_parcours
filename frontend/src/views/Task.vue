@@ -50,15 +50,49 @@
                 <div class="d-flex align-items-center justify-content-between w-100">
                   <n-space align="center" size="large">
                     <n-checkbox :checked="task.done" @update:checked="(value) => toggleTask(task, value)">
-                      <span :class="['task-title', { 'text-decoration-line-through text-muted': task.done }]">
+                      <span
+                        v-if="editingId !== task.id"
+                        :class="['task-title', { 'text-decoration-line-through text-muted': task.done }]"
+                      >
                         {{ task.title }}
                       </span>
                     </n-checkbox>
+                    <n-input
+                      v-if="editingId === task.id"
+                      v-model:value="editingTitle"
+                      size="small"
+                      placeholder="Nouveau nom"
+                      style="min-width: 200px"
+                    />
                     <n-tag size="small" :type="task.done ? 'success' : 'warning'">
                       {{ task.done ? 'Terminée' : 'En cours' }}
                     </n-tag>
                   </n-space>
-                  <n-button quaternary type="error" @click="deleteTask(task.id)">Supprimer</n-button>
+                  <n-space size="small">
+                    <n-button
+                      v-if="editingId !== task.id"
+                      quaternary
+                      @click="startEdit(task)"
+                    >
+                      Modifier
+                    </n-button>
+                    <n-button
+                      v-else
+                      quaternary
+                      type="primary"
+                      @click="saveEdit(task)"
+                    >
+                      Enregistrer
+                    </n-button>
+                    <n-button
+                      v-if="editingId === task.id"
+                      quaternary
+                      @click="cancelEdit"
+                    >
+                      Annuler
+                    </n-button>
+                    <n-button quaternary type="error" @click="deleteTask(task.id)">Supprimer</n-button>
+                  </n-space>
                 </div>
               </n-list-item>
             </n-list>
@@ -91,6 +125,8 @@ import {
 const tasks = ref([])
 const newTask = ref('')
 const error = ref('')
+const editingId = ref(null)
+const editingTitle = ref('')
 
 const doneCount = computed(() => tasks.value.filter(task => task.done).length)
 
@@ -153,6 +189,44 @@ async function deleteTask(id) {
       tasks.value = tasks.value.filter(t => t.id !== id)
     } else {
       error.value = 'Erreur lors de la suppression.'
+    }
+  } catch (e) {
+    error.value = 'Erreur réseau.'
+  }
+}
+
+function startEdit(task) {
+  editingId.value = task.id
+  editingTitle.value = task.title
+}
+
+function cancelEdit() {
+  editingId.value = null
+  editingTitle.value = ''
+}
+
+async function saveEdit(task) {
+  error.value = ''
+  const nextTitle = editingTitle.value.trim()
+  if (!nextTitle) {
+    error.value = 'Le titre ne peut pas être vide.'
+    return
+  }
+  try {
+    const res = await fetch(`/api/tasks/${task.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + getToken()
+      },
+      body: JSON.stringify({ title: nextTitle })
+    })
+    if (res.status === 200) {
+      task.title = nextTitle
+      cancelEdit()
+    } else {
+      const data = await res.json()
+      error.value = data.error || 'Erreur lors de la modification.'
     }
   } catch (e) {
     error.value = 'Erreur réseau.'
