@@ -21,14 +21,3 @@ CREATE TABLE tasks (
   user_id INT NOT NULL,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
-
-
--- 1. Créer l'utilisateur avec mot de passe simple
-CREATE USER 'nodeuser'@'localhost' IDENTIFIED BY '1234';
-
--- 2. Donner tous les droits sur la base
-GRANT ALL PRIVILEGES ON todo_app.* TO 'nodeuser'@'localhost';
-
--- 3. Appliquer les privilèges
-FLUSH PRIVILEGES;
