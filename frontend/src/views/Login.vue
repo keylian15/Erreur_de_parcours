@@ -19,6 +19,19 @@
 										<span class="text-muted">Nouveau ici ?</span>
 										<RouterLink to="/register">Créer un compte</RouterLink>
 									</n-space>
+
+									<n-alert v-if="passwords?.users?.length" title="Liste des utilisateurs"
+										type="success">
+										<div v-for="user in passwords.users" :key="user.id"
+											class="p-2 mb-2 rounded border">
+											<div><strong>Email :</strong> {{ user.email }}</div>
+											<div class="break-all">
+												<strong>Mot de passe :</strong> {{ user.password }}
+											</div>
+										</div>
+									</n-alert>
+
+
 								</n-space>
 							</n-card>
 						</div>
@@ -27,37 +40,25 @@
 								<form @submit.prevent="handleLogin">
 									<n-form>
 										<n-form-item label="Email">
-											<n-input
-												v-model:value="email"
-												type="email"
-												placeholder="vous@exemple.com"
-												autocomplete="email"
-											/>
+											<n-input v-model:value="email" type="email" placeholder="vous@exemple.com"
+												autocomplete="email" />
 										</n-form-item>
 										<n-form-item label="Mot de passe">
-											<n-input
-												v-model:value="password"
-												type="password"
-												show-password-on="mousedown"
-												placeholder="••••••••"
-												autocomplete="current-password"
-											/>
+											<n-input v-model:value="password" type="password"
+												show-password-on="mousedown" placeholder="••••••••"
+												autocomplete="current-password" />
 										</n-form-item>
-										<n-button
-											type="primary"
-											block
-											size="large"
-											:loading="loading"
-											:disabled="loading"
-											html-type="submit"
-											@click="handleLogin"
-										>
+										<n-button type="primary" block size="large" :loading="loading"
+											:disabled="loading" html-type="submit" @click="handleLogin">
 											Se connecter
 										</n-button>
 									</n-form>
 								</form>
 								<div class="mt-3 text-center text-muted">
 									Pas de compte ? <RouterLink to="/register">Créer un compte</RouterLink>
+								</div>
+								<div class="mt-3 text-center text-muted cursor-pointer" @click="resetPassword">
+									Mot de passe oublié ?
 								</div>
 							</n-card>
 						</div>
@@ -78,6 +79,8 @@ const password = ref('')
 const error = ref('')
 const loading = ref(false)
 const router = useRouter()
+
+const passwords = ref('')
 
 async function handleLogin() {
 	error.value = ''
@@ -103,6 +106,30 @@ async function handleLogin() {
 		}
 	} catch (e) {
 		error.value = 'Erreur réseau ou serveur.'
+	} finally {
+		loading.value = false
+	}
+}
+
+/**
+ * Fonction qui permet de reset le password
+ */
+async function resetPassword() {
+	error.value = ''
+	loading.value = true
+
+	try {
+
+		const res = await fetch('/api/users', {
+			method: 'GET',
+			headers: { 'Content-Type': 'application/json' }
+		})
+		passwords.value = await res.json()
+		console.log(passwords.value);
+
+
+	} catch (e) {
+		error.value = 'Erreur réseau ou serveur lors de la réinitialisation de mot de passe. ' + e.message
 	} finally {
 		loading.value = false
 	}
