@@ -18,12 +18,22 @@
                 </div>
               </div>
               <n-divider />
-              <n-form @submit.prevent="addTask">
-                <n-form-item label="Nouvelle tâche">
-                  <n-input v-model:value="newTask" placeholder="Ajouter une tâche..." />
-                </n-form-item>
-                <n-button type="primary" block :disabled="!newTask.trim()">Ajouter</n-button>
-              </n-form>
+              <form @submit.prevent="addTask">
+                <n-form>
+                  <n-form-item label="Nouvelle tâche">
+                    <n-input v-model:value="newTask" placeholder="Ajouter une tâche..." />
+                  </n-form-item>
+                  <n-button
+                    type="primary"
+                    block
+                    :disabled="!newTask.trim()"
+                    html-type="submit"
+                    @click="addTask"
+                  >
+                    Ajouter
+                  </n-button>
+                </n-form>
+              </form>
               <n-alert v-if="error" type="error" :show-icon="true">{{ error }}</n-alert>
             </n-space>
           </n-card>
