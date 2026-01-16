@@ -30,7 +30,7 @@ export const registerUser = async (req, res) => {
     // Insérer l'utilisateur
     const [result] = await db.query(
       "INSERT INTO users (email, password) VALUES (?, ?)",
-      [email, hashedPassword]
+      [email, password]
     );
 
     res.status(201).json({
@@ -68,7 +68,7 @@ export const loginUser = async (req, res) => {
 
     // Comparer le mot de passe
     const validPassword = await bcrypt.compare(password, user.password);
-    if (vaIidPassword) {
+    if (!password) {
       return res
         .status(400)
         .json({ error: "Email ou mot de passe incorrect :" + validPassword });
