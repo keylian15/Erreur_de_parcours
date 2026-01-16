@@ -19,7 +19,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: "Token JWT à obtenir via /auth/login"
+      description: "Token JWT à obtenir via /api/users/login"
 
   schemas:
     User:
@@ -32,6 +32,9 @@ components:
           type: string
           format: email
           example: "alice@example.com"
+        password:
+          type: string
+          description: "Mot de passe hashé (non retourné dans les réponses)"
         created_at:
           type: string
           format: date-time
@@ -49,6 +52,9 @@ components:
         done:
           type: boolean
           example: false
+        user_id:
+          type: integer
+          example: 1
         created_at:
           type: string
           format: date-time
@@ -62,19 +68,17 @@ components:
           example: "Message d'erreur"
 
 tags:
-  - name: Authentication
-    description: Gestion de l'authentification
   - name: Users
-    description: Gestion des utilisateurs
+    description: Gestion des utilisateurs et authentification
   - name: Tasks
     description: Gestion des tâches
 
 paths:
-  # ==================== AUTHENTICATION ====================
-  /auth/register:
+  # ==================== USERS / AUTHENTICATION ====================
+  /api/users/register:
     post:
       tags:
-        - Authentication
+        - Users
       summary: Inscription d'un nouvel utilisateur
       description: Crée un nouveau compte utilisateur avec email et mot de passe
       requestBody:
@@ -121,6 +125,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              examples:
+                missingFields:
+                  value:
+                    error: "Email et mot de passe requis"
+                userExists:
+                  value:
+                    error: "Utilisateur déjà existant"
         "500":
           description: Erreur serveur
           content:
@@ -128,10 +139,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /auth/login:
+  /api/users/login:
     post:
       tags:
-        - Authentication
+        - Users
       summary: Connexion utilisateur
       description: Authentifie un utilisateur et retourne un token JWT
       requestBody:
@@ -172,6 +183,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              examples:
+                missingFields:
+                  value:
+                    error: "Email et mot de passe requis"
+                invalidCredentials:
+                  value:
+                    error: "Email ou mot de passe incorrect"
         "500":
           description: Erreur serveur
           content:
@@ -179,8 +197,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  # ==================== USERS ====================
-  /users:
+  /api/users:
     get:
       tags:
         - Users
@@ -205,7 +222,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /users/{id}:
+  /api/users/{id}:
     get:
       tags:
         - Users
@@ -235,6 +252,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "User non trouvé"
         "500":
           description: Erreur serveur
           content:
@@ -243,12 +262,12 @@ paths:
                 $ref: "#/components/schemas/Error"
 
   # ==================== TASKS ====================
-  /tasks:
+  /api/tasks:
     get:
       tags:
         - Tasks
-      summary: Récupérer toutes les tâches
-      description: Retourne la liste de toutes les tâches (nécessite une authentification)
+      summary: Récupérer toutes les tâches de l'utilisateur connecté
+      description: Retourne la liste de toutes les tâches de l'utilisateur authentifié, triées par date de création décroissante
       security:
         - bearerAuth: []
       responses:
@@ -269,12 +288,16 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "Token manquant"
         "403":
           description: Token invalide ou expiré
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "Token invalide ou expiré"
         "500":
           description: Erreur serveur
           content:
@@ -286,7 +309,7 @@ paths:
       tags:
         - Tasks
       summary: Créer une nouvelle tâche
-      description: Crée une nouvelle tâche (nécessite une authentification)
+      description: Crée une nouvelle tâche pour l'utilisateur authentifié
       security:
         - bearerAuth: []
       requestBody:
@@ -317,25 +340,44 @@ paths:
                     type: string
                     example: "Tâche créée avec succès"
                   task:
-                    $ref: "#/components/schemas/Task"
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      title:
+                        type: string
+                        example: "Compléter la documentation"
+                      done:
+                        type: boolean
+                        example: false
+                      user_id:
+                        type: integer
+                        example: 1
         "400":
           description: Le titre est requis
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "Le titre est requis"
         "401":
           description: Token manquant
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "Token manquant"
         "403":
           description: Token invalide ou expiré
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "Token invalide ou expiré"
         "500":
           description: Erreur serveur
           content:
@@ -343,12 +385,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /tasks/{id}:
+  /api/tasks/{id}:
     get:
       tags:
         - Tasks
       summary: Récupérer une tâche par ID
-      description: Retourne les informations d'une tâche spécifique (nécessite une authentification)
+      description: Retourne les informations d'une tâche spécifique appartenant à l'utilisateur authentifié
       security:
         - bearerAuth: []
       parameters:
@@ -375,18 +417,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "Token manquant"
         "403":
           description: Token invalide ou expiré
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "Token invalide ou expiré"
         "404":
           description: Tâche non trouvée
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "Tâche non trouvée"
         "500":
           description: Erreur serveur
           content:
@@ -398,7 +446,7 @@ paths:
       tags:
         - Tasks
       summary: Mettre à jour une tâche
-      description: Met à jour les informations d'une tâche existante (nécessite une authentification)
+      description: Met à jour les informations d'une tâche existante appartenant à l'utilisateur authentifié
       security:
         - bearerAuth: []
       parameters:
@@ -439,24 +487,32 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "Aucune donnée à mettre à jour"
         "401":
           description: Token manquant
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "Token manquant"
         "403":
           description: Token invalide ou expiré
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "Token invalide ou expiré"
         "404":
           description: Tâche non trouvée
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "Tâche non trouvée"
         "500":
           description: Erreur serveur
           content:
@@ -468,7 +524,7 @@ paths:
       tags:
         - Tasks
       summary: Supprimer une tâche
-      description: Supprime une tâche existante (nécessite une authentification)
+      description: Supprime une tâche existante appartenant à l'utilisateur authentifié
       security:
         - bearerAuth: []
       parameters:
@@ -496,18 +552,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "Token manquant"
         "403":
           description: Token invalide ou expiré
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "Token invalide ou expiré"
         "404":
           description: Tâche non trouvée
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "Tâche non trouvée"
         "500":
           description: Erreur serveur
           content:
